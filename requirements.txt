@@ -1,16 +1,10 @@
-flas
-requests
 pandas
 numpy
 scikit-learn
 matplotlib
-seaborn
-sqlalchemy
 psycopg2-binary
-gunicorn
 transformers
 torch
 torchvision
 pillow
 opencv-python
-matplotlib
