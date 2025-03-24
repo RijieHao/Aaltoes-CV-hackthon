@@ -2,7 +2,10 @@
 
 ![Profile](pics/profile.png "Best profile pic award")
 
-This repository contains a PyTorch-based pipeline for image segmentation (inpainting) tasks on a Kaggle competition dataset. It demonstrates how to train and evaluate popular segmentation models, such as **U-Net**, **ResUNet**, **Attention U-Net**, **SegFormer**, and **Mask2Former**. The code is designed to handle both CPU and GPU environments seamlessly.
+This repository contains a PyTorch-based pipeline for AI-image Detection tasks on a Kaggle competition dataset. It demonstrates how to train and evaluate popular segmentation models.
+🏆 This project achieved a **97.2% score** and secured **2nd place** in the **Aaltoes 2025 Computer Vision v1** Kaggle competition.  
+👥 Team: **Ziyi Wang**, **Rijie Hao**, **Zhuchenyang Liu**
+
 
 ## 📚 Table of Contents  
 1. [✨ Features](#features)  
