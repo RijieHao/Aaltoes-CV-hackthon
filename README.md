@@ -178,11 +178,16 @@ The final private leaderboard result is based on the ensemble of three fine-tune
 | **mask2former-swin-small-ade-semantic**    | 0.61     | 0.9678                  | 0.9651                   |
 | **mask2former-swin-base-ade-semantic**     | 0.62     | 0.9686                  | 0.9677                   |
 | **mask2former-swin-large-ade-semantic**    | 0.61     | 0.9659                  | 0.9639                   |
-| **Ensemble**                               | /        | **0.9733**                  | **0.9713**                |
+| **Ensemble**                               | /        | **0.9733**              | **0.9713**               |
+
+Here are some prediction samples:
+
+![Prediction Examples](pics/predict_examples.jpg)
 
 🎉 We achieved **second place** in the **Aaltoes-CV-Hackathon** competition!  
 
 ![Leaderboard](pics/leaderboard.jpg)
+
 
 
 
