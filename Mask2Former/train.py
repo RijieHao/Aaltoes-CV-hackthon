@@ -4,7 +4,6 @@ import cv2
 import numpy as np
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
 import torch.optim as optim
 from torch.utils.data import Dataset, DataLoader
 from sklearn.model_selection import train_test_split
@@ -25,8 +24,12 @@ parser.add_argument('--threshold', type=float, default=0.5)
 parser.add_argument('--train_image_dir', type=str, default="../Dataset/train/train/images")
 parser.add_argument('--train_mask_dir', type=str, default="../Dataset/train/train/masks")
 parser.add_argument('--test_image_dir', type=str, default="../Dataset/test/test/images")
-parser.add_argument('--load_pretrain', type=str, default=None , help="Skip training and only do inference using pretrained model, path to the model")
+parser.add_argument('--load_pretrain', type=str, default=None, help="Skip training and only do inference using pretrained model, path to the model")
 args = parser.parse_args()
+
+# ------------------ Set Device ------------------
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+print(f"Using device: {device}")
 
 # ------------------ Dataset ------------------
 class InpaintDataset(Dataset):
@@ -75,34 +78,34 @@ def mask2rle(img):
 # ------------------ Main Training + Inference ------------------
 image_paths = sorted(glob.glob(os.path.join(args.train_image_dir, "*.png")))
 mask_paths = sorted(glob.glob(os.path.join(args.train_mask_dir, "*.png")))
-train_img_paths, val_img_paths, train_mask_paths, val_mask_paths = train_test_split(image_paths, mask_paths, test_size=0.2, random_state=42)
+train_img_paths, val_img_paths, train_mask_paths, val_mask_paths = train_test_split(
+    image_paths, mask_paths, test_size=0.2, random_state=42)
 
 train_dataset = InpaintDataset(train_img_paths, train_mask_paths)
 val_dataset = InpaintDataset(val_img_paths, val_mask_paths)
 test_image_paths = sorted(glob.glob(os.path.join(args.test_image_dir, "*.png")))
 test_dataset = InpaintTestDataset(test_image_paths)
 
-train_loader = DataLoader(train_dataset, batch_size=args.batch_size, shuffle=True, num_workers=arg.num_workers)
+train_loader = DataLoader(train_dataset, batch_size=args.batch_size, shuffle=True, num_workers=args.num_workers)
 val_loader = DataLoader(val_dataset, batch_size=args.batch_size, shuffle=False, num_workers=args.num_workers)
 test_loader = DataLoader(test_dataset, batch_size=args.batch_size, shuffle=False, num_workers=args.num_workers)
 
-
+# ------------------ Model Setup ------------------
 if args.model == "UNet":
-    model = UNet().cuda()
+    model = UNet().to(device)
 elif args.model == "ResUNet":
-    model = ResUNet().cuda()
+    model = ResUNet().to(device)
 elif args.model == "AttentionUNet":
-    model = AttentionUNet().cuda()
+    model = AttentionUNet().to(device)
 elif args.model == "SegFormer":
-    model = SegFormerWrapper().cuda()
+    model = SegFormerWrapper().to(device)
 elif args.model == "Mask2Former":
     args.model = "mask2former-base"
     model = Mask2FormerWrapper(
-    model_name="facebook/mask2former-swin-base-ade-semantic"# You can use other models like "facebook/mask2former-small-ade-semantic"
-).cuda()
+        model_name="facebook/mask2former-swin-base-ade-semantic"  # You can use other models like "facebook/mask2former-small-ade-semantic"
+    ).to(device)
 else:
     raise ValueError(f"Unsupported model: {args.model}")
-
 
 best_dice = 0.0
 
@@ -115,7 +118,7 @@ if not args.load_pretrain:
         model.train()
         train_loss = 0.0
         for images, masks in tqdm(train_loader, desc=f"Epoch {epoch}/{args.epochs}"):
-            images, masks = images.cuda(), masks.cuda()
+            images, masks = images.to(device), masks.to(device)
             outputs = model(images)
             loss = criterion(outputs, masks)
             optimizer.zero_grad()
@@ -128,7 +131,7 @@ if not args.load_pretrain:
         val_loss, dice_score = 0.0, 0.0
         with torch.no_grad():
             for images, masks in val_loader:
-                images, masks = images.cuda(), masks.cuda()
+                images, masks = images.to(device), masks.to(device)
                 outputs = model(images)
                 val_loss += criterion(outputs, masks).item()
                 preds = (outputs > 0.5).float()
@@ -157,12 +160,12 @@ else:
     print(f"🔁 Skipping training. Loading pretrained model from {model_path}...")
 
 # ------------------ Final Prediction ------------------
-model.load_state_dict(torch.load(model_path))
+model.load_state_dict(torch.load(model_path, map_location=device))
 model.eval()
 submission = []
 with torch.no_grad():
     for images, image_ids in tqdm(test_loader, desc="Test Inference"):
-        images = images.cuda()
+        images = images.to(device)
         outputs = model(images)
         preds = (outputs > args.threshold).float().cpu().numpy()
         for i, image_id in enumerate(image_ids):
@@ -172,4 +175,3 @@ with torch.no_grad():
 
 pd.DataFrame(submission, columns=["ImageId", "EncodedPixels"]).to_csv(submission_path, index=False)
 print(f"📁 submission.csv saved to {submission_path}")
-
