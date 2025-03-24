@@ -4,16 +4,24 @@
 
 This repository contains a PyTorch-based pipeline for image segmentation (inpainting) tasks on a Kaggle competition dataset. It demonstrates how to train and evaluate popular segmentation models, such as **U-Net**, **ResUNet**, **Attention U-Net**, **SegFormer**, and **Mask2Former**. The code is designed to handle both CPU and GPU environments seamlessly.
 
-## 📚 Table of Contents
+## 📚 Table of Contents  
 1. [✨ Features](#features)  
 2. [💻 Requirements](#requirements)  
-3. [🗂️ Dataset](#data-preparation)  
+3. [🗂️ Dataset](#dataset)  
+   - [Overview](#overview)  
+   - [Files](#files)  
+   - [Data Format](#data-format)  
 4. [🚀 Usage](#usage)  
-   - [📈 Training](#training)  
-   - [🔍 Inference](#inference)  
-5. [⚙️ Arguments and Options](#arguments-and-options)  
-6. [📁 Project Structure](#project-structure)  
-7. [🔗 Related resources](#resources)  
+   - [Training](#training)  
+   - [Inference](#inference)  
+   - [Threshold Optimization](#threshold-optimization)  
+5. [🤝 Model Ensemble](#model-ensemble)  
+6. [📊 Results](#results)  
+7. [⚙️ Arguments and Options](#arguments-and-options)  
+8. [📁 Project Structure](#project-structure)  
+9. [🔗 Related Resources](#related-resources)  
+10. [📝 License](#license)  
+
 
 ---
 
@@ -87,7 +95,7 @@ This competition provides a dataset of **46836 images**, each with its original 
 To train a model, run the main script with appropriate arguments. You can also you the run.sh to train or inference.
 
 ```bash
-python main.py \
+python train.py \
     --model "Mask2Fomer" \
     --batch_size 16 \
     --epochs 30 \
@@ -99,17 +107,89 @@ python main.py \
     --threshold 0.5
 ```
 
+
 ### Inference
 For inference you need add model name and the path to the pretrained model.
 
 ```bash
-python main.py \
+python train.py \
     --model "Mask2Former" \
     --test_image_dir "../Dataset/test/test/images" \
     --load_pretrain "/path/to/your/best_model.pth" \
     --threshold 0.5
 ```
 ---
+
+### Threshold Optimization
+
+#### Validation Set Inference  
+First, generate the float mask predictions from your target model on the validation set:  
+
+```bash
+python train.py \
+    --model "Mask2Former" \
+    --predict_validation True \
+    --load_pretrain "/path/to/your/best_model.pth" 
+```
+
+#### Optimization
+
+Next, you can optimize the threshold using `Mask2Former/threshold_optimization.ipynb`.
+To adjust the search gap, modify the following line:
+
+```python
+thresholds = np.linspace(0.4, 0.7, 20) 
+```
+
+Example output:
+
+```bash
+Optimal threshold: 0.637 with Dice coefficient: 0.9667
+
+Threshold results:
+    Threshold  Mean_Dice
+0    0.400000   0.392585
+1    0.415789   0.392585
+2    0.431579   0.392585
+3    0.447368   0.392585
+...
+```
+
+<img src="pics/threshold_example.png" alt="阈值优化示例" width="800">
+
+---
+
+## Models Ensemble 
+
+To further improve the prediction score, try the ensemble method.
+
+After gathering multiple encoded `submission.csv` by different models, you can try the ensemble strategy using `Mask2Former/ensemble.ipynb`.
+
+Adjust the combination of models and the voting threshold by modifying: `VOTE_THRESHOLD`.
+
+---
+
+## 🏆 Our Result
+
+The final private leaderboard result is based on the ensemble of three fine-tuned models with threshold optimization:
+
+| Model                                      | Threshold | Public Dice Coefficient | Private Dice Coefficient |
+|--------------------------------------------|----------|-------------------------|--------------------------|
+| **mask2former-swin-small-ade-semantic**    | 0.61     | 0.9678                  | 0.9651                   |
+| **mask2former-swin-base-ade-semantic**     | 0.62     | 0.9686                  | 0.9677                   |
+| **mask2former-swin-large-ade-semantic**    | 0.61     | 0.9659                  | 0.9639                   |
+| **Ensemble**                               | /        | **0.9733**                  | **0.9713**                |
+
+🎉 We achieved **second place** in the **Aaltoes-CV-Hackathon** competition!  
+
+![Leaderboard](pics/leaderboard.jpg)
+
+
+
+
+
+
+
 
 ## License
 

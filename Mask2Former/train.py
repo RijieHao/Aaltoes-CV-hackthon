@@ -26,6 +26,8 @@ parser.add_argument('--train_mask_dir', type=str, default="../Dataset/train/trai
 parser.add_argument('--test_image_dir', type=str, default="../Dataset/test/test/images")
 parser.add_argument('--load_pretrain', type=str, default=None, help="Skip training and only do inference using pretrained model, path to the model")
 args = parser.parse_args()
+parser.add_argument('--predict_validation', type=bool, default=False,
+                    help="Predict on validation set when using pretrained model for threshold optimization")
 
 # ------------------ Set Device ------------------
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -159,19 +161,48 @@ else:
     submission_path = os.path.join(save_folder, "submission.csv")
     print(f"🔁 Skipping training. Loading pretrained model from {model_path}...")
 
-# ------------------ Final Prediction ------------------
-model.load_state_dict(torch.load(model_path, map_location=device))
-model.eval()
-submission = []
-with torch.no_grad():
-    for images, image_ids in tqdm(test_loader, desc="Test Inference"):
-        images = images.to(device)
-        outputs = model(images)
-        preds = (outputs > args.threshold).float().cpu().numpy()
-        for i, image_id in enumerate(image_ids):
-            mask_pred = preds[i, 0, :, :]
-            rle = mask2rle(mask_pred)
-            submission.append([image_id, rle])
+# Val Prediction
+if args.load_pretrain and args.predict_validation:
+    print(f"🔍 Predicting on validation set...")
+    model.load_state_dict(torch.load(model_path, map_location=device))
+    model.eval()
+    validation_path = os.path.join(save_folder, "validation.npz")
+    mask_preds = []
+    real_masks = []
 
-pd.DataFrame(submission, columns=["ImageId", "EncodedPixels"]).to_csv(submission_path, index=False)
-print(f"📁 submission.csv saved to {submission_path}")
+    with torch.no_grad():
+        for images, masks in tqdm(val_loader, desc="Val Inference"):
+            images = images.to(device)
+            outputs = model(images)
+            preds = outputs.sigmoid().float().cpu().numpy()
+            masks_np = masks.cpu().numpy()
+
+            for i in range(preds.shape[0]):
+                mask_pred = preds[i, 0, :, :]
+                real_mask = masks_np[i, 0, :, :]
+                mask_preds.append(mask_pred)
+                real_masks.append(real_mask)
+
+    mask_preds = np.array(mask_preds)
+    real_masks = np.array(real_masks)
+
+    np.savez_compressed(validation_path, mask_preds=mask_preds, real_masks=real_masks)
+    print(f"📁 validation.npz saved to {validation_path}")
+
+if args.predict_validation == False:
+    # ------------------ Final Prediction ------------------
+    model.load_state_dict(torch.load(model_path, map_location=device))
+    model.eval()
+    submission = []
+    with torch.no_grad():
+        for images, image_ids in tqdm(test_loader, desc="Test Inference"):
+            images = images.to(device)
+            outputs = model(images)
+            preds = (outputs > args.threshold).float().cpu().numpy()
+            for i, image_id in enumerate(image_ids):
+                mask_pred = preds[i, 0, :, :]
+                rle = mask2rle(mask_pred)
+                submission.append([image_id, rle])
+
+    pd.DataFrame(submission, columns=["ImageId", "EncodedPixels"]).to_csv(submission_path, index=False)
+    print(f"📁 submission.csv saved to {submission_path}")
