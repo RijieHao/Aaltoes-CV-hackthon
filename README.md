@@ -1,4 +1,4 @@
-# Aaltoes-CV-Hackthon: Surf in Wild Rift (2nd)
+# Aaltoes-CV-Hackthon: Surf in Wild Rift
 
 ![Profile](pics/profile.png "Best profile pic award")
 
@@ -81,6 +81,36 @@ This competition provides a dataset of **46836 images**, each with its original 
   - **1:** Inpainted (manipulated) regions
 
 ---
+
+## Usage
+### Training
+To train a model, run the main script with appropriate arguments. You can also you the run.sh to train or inference.
+
+```bash
+python main.py \
+    --model "Mask2Fomer" \
+    --batch_size 16 \
+    --epochs 30 \
+    --lr 1e-4 \
+    --num_workers 4 \
+    --train_image_dir "../Dataset/train/train/images" \
+    --train_mask_dir "../Dataset/train/train/masks" \
+    --test_image_dir "../Dataset/test/test/images" \
+    --threshold 0.5
+```
+
+### Inference
+For inference you need add model name and the path to the pretrained model.
+
+```bash
+python main.py \
+    --model "Mask2Former" \
+    --test_image_dir "../Dataset/test/test/images" \
+    --load_pretrain "/path/to/your/best_model.pth" \
+    --threshold 0.5
+```
+---
+
 ## License
 
 Shield: [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
