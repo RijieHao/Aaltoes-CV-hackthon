@@ -4,7 +4,7 @@ This repository contains a PyTorch-based pipeline for AI-image Detection tasks o
 
 
 ---
-🏆 This project achieved a **97.2% score** and secured **2nd place** in the **Aaltoes 2025 Computer Vision v1** Kaggle competition.  
+🏆 This project achieved a **97.2% score** and secured **2nd place** in the **Aaltoes 2025 Computer Vision v1 Hackthon**.  
 👥 Team: **Ziyi Wang**, **Rijie Hao**, **Zhuchenyang Liu**  
 🙏 Special thanks to the organizers at [**Aaltoes**](https://www.aaltoes.com/) for hosting this amazing challenge.
 
