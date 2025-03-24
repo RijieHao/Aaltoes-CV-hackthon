@@ -1,10 +1,12 @@
 # Aaltoes-CV-Hackthon: Surf in Wild Rift
-
+This repository contains a PyTorch-based pipeline for AI-image Detection tasks on a Kaggle competition dataset. It demonstrates how to train and evaluate popular segmentation models.
 ![Profile](pics/profile.png "Best profile pic award")
 
-This repository contains a PyTorch-based pipeline for AI-image Detection tasks on a Kaggle competition dataset. It demonstrates how to train and evaluate popular segmentation models.
+
+---
 🏆 This project achieved a **97.2% score** and secured **2nd place** in the **Aaltoes 2025 Computer Vision v1** Kaggle competition.  
-👥 Team: **Ziyi Wang**, **Rijie Hao**, **Zhuchenyang Liu**
+👥 Team: **Ziyi Wang**, **Rijie Hao**, **Zhuchenyang Liu**  
+🙏 Special thanks to the organizers at [**Aaltoes**](https://www.aaltoes.com/) for hosting this amazing challenge.
 
 
 ## 📚 Table of Contents  
