@@ -25,10 +25,9 @@ parser.add_argument('--train_image_dir', type=str, default="../Dataset/train/tra
 parser.add_argument('--train_mask_dir', type=str, default="../Dataset/train/train/masks")
 parser.add_argument('--test_image_dir', type=str, default="../Dataset/test/test/images")
 parser.add_argument('--load_pretrain', type=str, default=None, help="Skip training and only do inference using pretrained model, path to the model")
-args = parser.parse_args()
 parser.add_argument('--predict_validation', type=bool, default=False,
                     help="Predict on validation set when using pretrained model for threshold optimization")
-
+args = parser.parse_args()
 # ------------------ Set Device ------------------
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print(f"Using device: {device}")
